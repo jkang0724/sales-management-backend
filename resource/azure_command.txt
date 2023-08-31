@@ -1,0 +1,186 @@
+-- //// Terminology
+
+Cloud-Native Applications:
+- designed to be built and deployed using scalable cloud services
+- typically containerized, dynamically orchestrated, and microservices-oriented
+
+Namespace:
+- virtual sub-clusters that allow for logical separation and organization within a cluster
+- facilitate collaboration between different teams or projects sharing the same Kubernetes cluster
+
+Cluster:
+- consists of multiple nodes that automatically and seamlessly distribute workloads among themselves 
+- nodes can run one or more pods, which contain application code and dependencies
+
+Container Registry:
+- storage location for developers to upload and share container images, which are lightweight software packages containing application files and components
+- ReplicaSet ensures that a specified number of pod replicas are running to maintain high availability and fault tolerance for the application
+
+Continuous Integration and Continuous Delivery (CI/CD):
+- software development practice that automates the process of integrating code changes and continuously delivering them to production
+- improve development efficiency and reduce deployment risks
+
+Docker:
+- platform that enables developers to create and run containers
+- Docker Hub is a public registry to store and share container images, and Docker Trusted Registry is an enterprise-grade solution
+- Azure, AWS, Google, and others also offer their own container registries
+
+Kubernetes:
+- orchestration platform for managing containerized applications
+- manage and automate container deployment, scaling, and operations across clusters of hosts
+
+Kubectl:
+- command-line tool to interact with Kubernetes clusters
+- kubectl config file stores a Kubernetes context, which are cluster information including access parameters, user details, and working namespace
+
+
+-- //// Commands
+
+Docker:
+docker images: Lists all the Docker images available on your local machine.
+docker images <image_name>*: Lists all docker images starting with <image_name>
+docker container ls: Lists all running containers.
+docker conatiner ls -a: Lists all containers, including stopped ones.
+docker tag <original_image> <target_tag>: Labels an image with the <target_tag>
+docker build -t <image_name> <path_to_Dockerfile>: Builds a Docker image from a Dockerfile located at the specified path and tags it with the given <image_name>.
+docker run -p <host>:<application> <image_name>: <host>=the Docker host to access to the container from the outside. <application>=the port used by your application. Starts a container with the image.
+docker stop <container_id>: Stops a running container.
+docker rm <container_id>: Removes a stopped container. Use the container ID obtained from docker ls -a command.
+docker version: This command shows the Docker client and server versions installed on your system.
+docker info: Displays detailed information about Docker, including the number of containers, images, storage driver, etc.
+docker search <image_name>: Searches the Docker Hub registry for Docker images matching the provided <image_name>.
+docker push <image_name>[:tag]: Uploads a tagged Docker image from your local machine to the Docker Hub registry.
+docker pull <image_name>: Downloads a Docker image from the Docker Hub registry to your local machine.
+docker rmi <image_id>: Removes a Docker image from your local machine. Use the image ID obtained from docker images command.
+docker run <image_name>: Creates and starts a new container from the specified image.
+docker start <container_id>: Starts a stopped container.
+docker restart <container_id>: Restarts a container.
+docker exec -it <container_id> <command>: Executes a command inside a running container. The -it flags allow for an interactive session.
+docker logs <container_id>: Displays the logs of a container.
+docker network ls: Lists all Docker networks.
+docker volume ls: Lists all Docker volumes.
+docker volume create <volume_name>: Creates a named volume that can be used to persist data between container instances or share data between containers.
+docker volume rm <volume_name>: Removes a named volume that is no longer needed.
+docker-compose build: Builds the images defined in the Docker Compose file without starting containers.
+docker-compose logs: Displays the logs of containers defined in the Docker Compose file.
+docker-compose up: Starts containers defined in a Docker Compose file.
+docker-compose down: Stops and removes containers defined in a Docker Compose file.
+docker-compose down -v: Stops and removes containers defined in a Docker Compose file, along with the associated volumes.
+docker image prune -a: Removes all unused Docker images, including dangling (untagged) images, freeing up disk space.
+docker container prune: Removes all stopped containers.
+docker system prune: Cleans up unused Docker data, including stopped containers, dangling images, and unused networks and volumes. Be careful with this command, as it permanently removes data that is not in use.
+docker container inspect: Displays detailed information about a running or stopped container, including configuration, network settings, and environment variables.
+
+Azure:
+az login: Authenticates Azure CLI to manage Azure resources and services.
+az acr login --name <container_registry>: Authenticates Docker to an Azure Container Registry.
+az account set --subscription <subscription_id>: Switches an active Azure subscription to the specified subscription.
+az aks get-credentials --resource-group <resource_group> --name <AKS_cluster>: Retrieves and sets the Kubernetes configuration to access the AKS cluster.
+az acr repository list --name <container_registry> --output table: Lists all repositories in the specified container registry in a tabular format
+az acr repository show-tags --name <container_registry> --repository <repository> --output table: Lists all tags of <repository> in the container registry.
+* stop/show/start non-system nodepools (on CMD Prompt)
+az aks nodepool <stop/show/start> --resource-group myResourceGroup --cluster-name myAKSCluster --nodepool-name testnodepool
+az aks nodepool stop --resource-group AKS_SALES --cluster-name sales --nodepool-name agentpool
+
+Kubernetes:
+kubectl config view: Displays the current Kubernetes configuration, including cluster information, contexts, and authentication settings.
+kubectl config get-contexts: Lists all available Kubernetes contexts in the current configuration, showing their names, clusters, authentication info, and currently selected context.
+kubectl config unset contexts.<AKS_context>: Removes the Kubernetes context from the configuration.
+kubectl config use-context <AKS_context>: Sets the current Kubernetes context to the target context.
+kubectl apply -f <.yaml>: Creates or modifies Kubernetes resources defined in the yaml file. i.e. namespace, deployment, service.
+kubectl get <resources>: Displays a list of Kubernetes resources such as pods, deployments, service, replicaset, etc.
+kubectl get namespace: Lists all available namespaces in the current Kubernetes cluster.
+kubectl get service: Displays a list of Kubernetes services running in the default namespace, along with their names, cluster IP addresses, and exposed ports.
+kubectl config set-context --current --namespace=<namespace>: Sets the namespace for the current AKS cluster to the target namespace.
+
+
+-- //// Reference
+
+	// error pod
+	kubectl get pods
+		ImagePullBackOff
+		ErrImagePull
+		NAME                                        READY   STATUS    RESTARTS   AGE
+		sales-management-service-84d8867d56-bdt5j   1/1     Running   0          9s
+		sales-management-service-84d8867d56-zwvk6   1/1     Running   0          12s	
+
+	kubectl describe pod xxx
+
+	// error deployment
+	kubectl describe deployment sales-management-service
+		unavailable -> remove others
+		kubectl get pods 
+			imagePullbackOff
+		kubectl describe pod sales-management-ui-77b988847b-8wjj4	
+			fail to pull image failed to fetch anonymous token: unexpected status from GET request to 
+			https://acrcapionsales.azurecr.io/oauth2/token?scope=repository%3Asales-management-ui%
+			3Apull&service=acrcapionsales.azurecr.io: 401 Unauthorized
+			
+			az aks check-acr --resource-group AKS_CAPION --name capion --acr acrcapionsales.azurecr.io
+			az aks check-acr --resource-group AKS_CAPION --name capion_cluster --acr acrcapionsales.azurecr.io
+			
+			az aks update -n capion -g AKS_CAPION --attach-acr acrcapionsales  <-- ************
+			
+			kubectl get service
+				NAME                       TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)          AGE
+				kubernetes                 ClusterIP      *.*.*.*       <none>          443/TCP          84m
+				sales-management-service   LoadBalancer   *.*.*.*       *.*.*.*         4000:31265/TCP   58m
+				sales-management-ui        LoadBalancer   *.*.*.*       *.*.*.*         3000:30952/TCP   40m
+				
+	// to obtain the login server address of that ACR
+	az acr list --resource-group AKS_CAPION --query "[].{acrLoginServer:loginServer}" --output table
+AcrLoginServer
+		AcrLoginServer
+		-------------------------
+		acrcapionsales.azurecr.io
+		
+ 
+	
+	docker login acrcapionsales.azurecr.io
+		az acr credential show --name acrcapionsales
+		{
+		  "passwords": [
+			{
+			  "name": "password",
+			  "value": ""
+			},
+			{
+			  "name": "password2",
+			  "value": ""
+			}
+		  ],
+		  "username": "acrcapionsales"
+		}
+
+		-- error ContainerCreating
+			kubectl describe pods sales-management-ui-754cc44f7-x66t7
+				no space left on device
+		
+		-- error
+		kubectl describe pod
+		 failed to resolve reference "a	crcapionsales.azurecr.io/sales-management-service:1.0": failed to authorize: failed to fetch anonymous token: unexpected status from GET request to https://acrcapionsales.azurecr.io/oauth2/token?scope=repository%3Asales-management-service%3Apull&service=acrcapionsales.azurecr.io: 401 Unauthorized
+			<-- Fail to pull images from Azure Container Registry to Azure Kubernetes Service cluster
+		
+			az role assignment list --scope /subscriptions/<subscription_id>/resourceGroups/AKS_CAPION/providers/Microsoft.ContainerRegistry/registries/acrcapionsales -o table
+			
+			create principal
+			az ad sp create-for-rbac --name AKSClusterServicePrincipal
+				{
+				  "appId": "2f4e8c8e-2be4-430f-b965-a296ed0c1873",
+				  "displayName": "AKSClusterServicePrincipal",
+				  "password": "",
+				  "tenant": ""
+				}
+				 
+				az aks create --resource-group AKS_CAPION --name capion_cluster --service-principal 2f4e8c8e-2be4-430f-b965-a296ed0c1873 --client-secret <client_secret>
+	
+			az aks show --resource-group AKS_CAPION --name capion_cluster --query servicePrincipalProfile.clientId -o tsv
+
+			az ad sp credential list --id "2f4e8c8e-2be4-430f-b965-a296ed0c1873" --query "[].endDate" -o tsv
+
+			az role assignment list --scope /subscriptions/<subscription_id>/resourceGroups/AKS_CAPION/providers/Microsoft.ContainerRegistry/registries/acrcapionsales -o table
+			
+			az aks update -n capion_cluster -g AKS_CAPION --attach-acr acrcapionsales
+			
+		-- error
+		troubleshooting - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/cannot-pull-image-from-acr-to-aks-cluster
